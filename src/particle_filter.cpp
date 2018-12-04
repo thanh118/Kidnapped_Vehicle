@@ -24,7 +24,29 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
+	// set number of particle
+	num_particles = 100;
+	weights.resize(num_particles);
+	particles.resize(num_particles);
 
+	random_device rd;
+	default_random_engine gen(rd());
+
+	// Create normal (Gaussian) distribution
+	normal_distribution<double> dist_x(x, std[0]);
+	normal_distribution<double> dist_y(x, std[1]);
+	normal_distribution<double> dist_theta(theta, std[2]);
+
+	// Initialize particles -
+	for(int i = 0; i < num_particles; ++i){
+
+		particles[i].id = i;
+		particles[i].x  = dist_x(gen);
+		particles[i].y  = dist_y(gen);
+		particles[i].theta = dist_theta(gen);
+		particles[i].weight = 1.0;
+	}
+	is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -33,6 +55,38 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 
+	// Engine for later generation of particle
+	default_random_engine gen;
+
+	// Make distributions for adding noise
+  normal_distribution<double> dist_x(0, std_pos[0]);
+  normal_distribution<double> dist_y(0, std_pos[1]);
+  normal_distribution<double> dist_theta(0, std_pos[2]);
+
+  // Different equations based on if yaw rate is zero or not
+
+  for(int i = 0; i < num_particles; ++i){
+
+	  if(abs(yaw_rate)!= 0)
+	  {
+		  // add measurement to particle 
+		  particles[i].x += (velocity/yaw_rate)* (sin(particles[i].theta + (yaw_rate*delta_t)) -sin(particles[i].theta));
+		  particles[i].y += (velocity/yaw_rate) * (cos(particles[i].theta) - cos(particles[i].theta + (yaw_rate * delta_t)));
+          particles[i].theta += yaw_rate * delta_t;
+	  } 
+	  else 
+	  {
+
+		  // add measurement to particles
+		  particles[i].x +=velocity*delta_t * cos(particles[i].theta);
+		  particles[i].y +=velocity*delta_t * sin(particles[i].theta);		  	  
+	  }
+
+	// Add noise to the particles
+    particles[i].x += dist_x(gen);
+    particles[i].y += dist_y(gen);
+    particles[i].theta += dist_theta(gen);
+  }
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
@@ -40,7 +94,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	//   observed measurement to this particular landmark.
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
 	//   implement this method and use it as a helper during the updateWeights phase.
-
+	
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
