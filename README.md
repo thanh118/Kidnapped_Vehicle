@@ -87,7 +87,7 @@ Your job is to build out the methods in `particle_filter.cpp` until the simulato
 ```
 Success! Your particle filter passed!
 ```
-
+![Images](images/1.PNG)
 # Implementing the Particle Filter
 The directory structure of this repository is as follows:
 
@@ -138,6 +138,3 @@ The things the grading code is looking for are:
 1. **Accuracy**: your particle filter should localize vehicle position and yaw to within the values specified in the parameters `max_translation_error` and `max_yaw_error` in `src/main.cpp`.
 
 2. **Performance**: your particle filter should complete execution within the time of 100 seconds.
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
